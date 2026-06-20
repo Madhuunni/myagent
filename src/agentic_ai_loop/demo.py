@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from importlib.util import find_spec
+import socket
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from .core import AgentLoop
+from .core import AgentLoop, AgentSettings
+from .llm import build_ollama_planner
 from .tools import default_registry
 
 
@@ -17,9 +19,16 @@ def print_section(title: str) -> None:
 
 
 def run_agent_examples() -> None:
-    """Show how the default planner routes prompts to bundled tools."""
+    """Show how an LLM planner routes prompts to bundled tools."""
 
-    agent = AgentLoop(tools=default_registry())
+    settings = AgentSettings()
+    if not _ollama_server_available():
+        print_section(f"LLM-backed agent loop examples ({settings.ollama_model})")
+        print("Ollama is not reachable at localhost:11434.")
+        print("Start Ollama or set AGENTIC_AI_LOOP_OLLAMA_MODEL to an available model before rerunning the demo.")
+        return
+
+    agent = AgentLoop(tools=default_registry(), planner=build_ollama_planner(settings.ollama_model))
     examples = [
         ("Calculator through agent", "calculate: 2 + 3 * 4"),
         ("HTTP GET through agent", "http: https://example.com"),
@@ -27,12 +36,26 @@ def run_agent_examples() -> None:
         ("Echo through agent", "Summarize this exact sentence."),
     ]
 
-    print_section("Agent loop examples")
+    print_section(f"LLM-backed agent loop examples ({settings.ollama_model})")
     for label, prompt in examples:
-        state = agent.run(prompt, system_prompts=["You are a concise technical assistant."])
         print(f"\n{label}")
         print(f"prompt: {prompt}")
+        try:
+            state = agent.run(prompt, system_prompts=["You are a concise technical assistant."])
+        except Exception as exc:  # pragma: no cover - depends on local Ollama runtime
+            print("Unable to reach the configured Ollama model.")
+            print("Start Ollama or set AGENTIC_AI_LOOP_OLLAMA_MODEL to an available model.")
+            print(f"error: {exc}")
+            return
         print(state.final_answer)
+
+
+def _ollama_server_available(host: str = "127.0.0.1", port: int = 11434, timeout: float = 0.25) -> bool:
+    """Return whether the local Ollama API socket is reachable."""
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(timeout)
+        return sock.connect_ex((host, port)) == 0
 
 
 def run_tool_registry_examples() -> None:
