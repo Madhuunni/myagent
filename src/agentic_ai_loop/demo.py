@@ -22,6 +22,8 @@ def run_agent_examples() -> None:
     agent = AgentLoop(tools=default_registry())
     examples = [
         ("Calculator through agent", "calculate: 2 + 3 * 4"),
+        ("HTTP GET through agent", "http: https://example.com"),
+        ("Browser title through agent", "browser: https://example.com"),
         ("Echo through agent", "Summarize this exact sentence."),
     ]
 
@@ -40,6 +42,9 @@ def run_tool_registry_examples() -> None:
     examples = [
         ("calculator", "(12 / 3) + 7"),
         ("calculator", "2 ** 5"),
+        ("http_get", "https://example.com"),
+        ("page_text", "https://example.com"),
+        ("browser_title", "https://example.com"),
         ("echo", "Echo tool returns the exact input text."),
         ("echo", "Use echo for prompts that do not request calculation."),
     ]

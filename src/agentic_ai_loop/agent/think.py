@@ -34,4 +34,28 @@ def default_planner(state: AgentState, observation: str) -> Decision:
             tool_input=text.split(":", 1)[1].strip(),
         )
 
+    if text.lower().startswith("http:"):
+        return Decision(
+            kind="tool",
+            thought="The user asked for an HTTP fetch, so call the http_get tool.",
+            tool_name="http_get",
+            tool_input=text.split(":", 1)[1].strip(),
+        )
+
+    if text.lower().startswith("page text:"):
+        return Decision(
+            kind="tool",
+            thought="The user asked to extract page text, so call the page_text tool.",
+            tool_name="page_text",
+            tool_input=text.split(":", 1)[1].strip(),
+        )
+
+    if text.lower().startswith("browser:"):
+        return Decision(
+            kind="tool",
+            thought="The user asked for browser automation, so call the browser_title tool.",
+            tool_name="browser_title",
+            tool_input=text.split(":", 1)[1].strip(),
+        )
+
     return Decision(kind="tool", thought="Use the echo tool as the default bootstrap action.", tool_name="echo", tool_input=text)
