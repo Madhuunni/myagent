@@ -1,4 +1,4 @@
-"""Minimal agentic AI decision loop package."""
+"""Agentic AI loop package."""
 
 from .core import AgentLoop, AgentState, Decision, LoopConfig, StepRecord, ToolResult
 from .tools import ToolRegistry, calculator_tool, echo_tool

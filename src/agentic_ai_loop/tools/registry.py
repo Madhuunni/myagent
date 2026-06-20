@@ -1,4 +1,4 @@
-"""Tool registry and sample tools for the basic agent loop."""
+"""Tool registry and sample tools for the agent loop."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import operator
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-from .core import ToolResult
+from agentic_ai_loop.agent.state import ToolResult
 
 ToolFn = Callable[[str], str]
 
@@ -23,8 +23,6 @@ class ToolRegistry:
 
     @classmethod
     def from_langchain_tools(cls, tools: list[object]) -> "ToolRegistry":
-        """Adapt LangChain tools that expose ``name`` and ``invoke`` into this registry."""
-
         registry = cls()
         for tool in tools:
             registry.register(str(getattr(tool, "name")), lambda text, selected=tool: str(selected.invoke(text)))
@@ -51,21 +49,15 @@ _ALLOWED_OPERATORS: dict[type[ast.operator | ast.unaryop], Callable[..., float]]
 
 
 def echo_tool(text: str) -> str:
-    """Return the provided text."""
-
     return text
 
 
 def calculator_tool(expression: str) -> str:
-    """Safely evaluate a small arithmetic expression."""
-
     parsed = ast.parse(expression, mode="eval")
     return str(_eval_expression(parsed.body))
 
 
 def default_registry() -> ToolRegistry:
-    """Create the starter tool registry."""
-
     registry = ToolRegistry()
     registry.register("echo", echo_tool)
     registry.register("calculator", calculator_tool)
